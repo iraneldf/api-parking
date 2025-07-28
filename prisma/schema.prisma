@@ -19,7 +19,6 @@ model User {
 model ParkingSpot {
   id           Int           @id @default(autoincrement())
   number       String        @unique
-  isOccupied   Boolean       @default(false)
   reservations Reservation[]
 }
 
@@ -29,6 +28,7 @@ model Reservation {
   userId     Int
   vehicle    String
   reservedAt DateTime
+  duration   Int
   spot       ParkingSpot @relation(fields: [spotId], references: [id])
   spotId     Int
 }
