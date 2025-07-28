@@ -9,7 +9,7 @@ API RESTful construida con [NestJS](https://nestjs.com/) para la gestión de un 
 Clona el repositorio e instala las dependencias:
 ```bash
 
-git clone https://github.com/tuusuario/api-parking.git
+git clone https://github.com/iraneldf/api-parking
 cd api-parking
 npm install
 ```
@@ -73,4 +73,4 @@ src/
 ├── config/           # Configuración de entorno y bases de datos
 ├── main.ts           # Punto de entrada de la app
 └── app.module.ts     # Módulo raíz
-
+```
