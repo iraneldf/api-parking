@@ -1,8 +1,8 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../config/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -33,6 +33,12 @@ export class UsersService {
     return user;
   }
 
+  async findAll(): Promise<PrismaUser[]> {
+    return this.prisma.user.findMany({
+      orderBy: { id: 'asc' },
+    });
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto): Promise<PrismaUser> {
     const currentUser = await this.findById(id);
 
@@ -40,10 +46,7 @@ export class UsersService {
       updateUserDto.email &&
       updateUserDto.email.toLowerCase() !== currentUser.email
     ) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: updateUserDto.email.toLowerCase() },
-      });
-
+      const existingUser = await this.findByEmail(updateUserDto.email);
       if (existingUser) {
         throw new ConflictException('El email ya está en uso');
       }
@@ -73,5 +76,12 @@ export class UsersService {
     };
 
     return this.prisma.user.create({ data });
+  }
+
+  async remove(id: number): Promise<{ message: string }> {
+    const user = await this.findById(id);
+    await this.prisma.user.delete({ where: { id: user.id } });
+
+    return { message: `Usuario con ID ${id} eliminado exitosamente` };
   }
 }

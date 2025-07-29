@@ -1,9 +1,16 @@
-import { Controller, Get, UseGuards, Put, Body, Param } from '@nestjs/common';
-import { GetUser } from '../common/decorators/get-user.decorator';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -11,48 +18,62 @@ import {
   ApiTags,
   ApiParam,
 } from '@nestjs/swagger';
-import { UserContext } from './types/user.types';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @ApiBearerAuth()
-@ApiTags('Users')
-@Controller('users')
+@ApiTags('Usuarios')
+@Controller('usuarios')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.ADMIN)
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
-  @Put(':id')
-  @Roles(Role.ADMIN)
-  @ApiOperation({
-    summary: 'Actualizar usuario',
-    description:
-      'Permite al administrador actualizar los datos de un usuario específico',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID del usuario a actualizar',
-    example: 1,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Usuario actualizado correctamente',
-  })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
-  updateUser(@Param('id') id: string, @Body() data: UpdateUserDto) {
-    return this.usersService.update(Number(id), data);
+  @Get()
+  @ApiOperation({ summary: 'Listar todos los usuarios' })
+  @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida' })
+  findAll() {
+    return this.usersService.findAll();
   }
 
-  @Get('me')
-  @ApiOperation({
-    summary: 'Obtener perfil del usuario autenticado',
-    description: 'Devuelve la información del usuario autenticado',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Datos del usuario devueltos correctamente',
-  })
-  getProfile(@GetUser() user: UserContext) {
-    return this.usersService.findById(user.id);
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener un usuario por ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Usuario obtenido' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findById(id);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Crear un nuevo usuario' })
+  @ApiResponse({ status: 201, description: 'Usuario creado' })
+  @ApiResponse({ status: 409, description: 'Email ya está en uso' })
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Actualizar un usuario por ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Usuario actualizado' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.update(id, updateUserDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar un usuario por ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Usuario eliminado' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
   }
 }

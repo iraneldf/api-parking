@@ -29,13 +29,12 @@ describe('ParkingController (e2e)', () => {
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email: 'admin@parking.com', password: 'admin123' });
-    // .send({ email: 'cliente@example.com', password: '123456' });
 
     console.log('Login status:', loginRes.status);
     console.log('Login body:', loginRes.body);
 
     if (loginRes.status !== 201 && loginRes.status !== 200) {
-      throw new Error('Login failed in beforeAll, cannot run tests');
+      throw new Error(`Login failed: ${JSON.stringify(loginRes.body)}`);
     }
 
     const loginBody = loginRes.body as LoginResponse;
@@ -64,11 +63,13 @@ describe('ParkingController (e2e)', () => {
         duration: 60,
       });
 
+    console.log('Reserva response:', res.status, res.body);
+
     expect(res.status).toBe(201);
-
     const body = res.body as ReservationResponse;
-    expect(body.vehicle).toBe('ABC123');
 
+    expect(body).toHaveProperty('id');
+    expect(body.vehicle).toBe('ABC123');
     createdReservationId = body.id;
   });
 
@@ -77,9 +78,11 @@ describe('ParkingController (e2e)', () => {
       .get('/parking/ocupacion')
       .set('Authorization', `Bearer ${jwtToken}`);
 
-    expect(res.status).toBe(200);
+    console.log('Ocupación response:', res.status, res.body);
 
+    expect(res.status).toBe(200);
     const body = res.body as OccupationResponse[];
+
     expect(Array.isArray(body)).toBe(true);
   });
 
@@ -88,9 +91,13 @@ describe('ParkingController (e2e)', () => {
       .delete(`/parking/cancelar/${createdReservationId}`)
       .set('Authorization', `Bearer ${jwtToken}`);
 
-    expect(res.status).toBe(200);
+    console.log('Cancelación response:', res.status, res.body);
 
+    expect(res.status).toBe(200);
     const body = res.body as CancelResponse;
+
     expect(body.message).toBe('Reserva cancelada exitosamente');
   });
+
+  //   todo agregar prueba de modificar usuario
 });

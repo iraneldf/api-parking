@@ -63,7 +63,6 @@ export class ParkingController {
     return this.parkingService.cancelReservation(user.id, id);
   }
 
-  // todo definir bien este metodo buscar la mejor logica
   @Get('ocupacion')
   @Roles(Role.EMPLEADO, Role.ADMIN)
   @ApiOperation({

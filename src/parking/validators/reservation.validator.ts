@@ -4,8 +4,8 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
-import { PrismaService } from '../../config/prisma.service';
-
+import { PrismaService } from 'src/config/prisma.service';
+// todo ver todas las validaciones posibles
 @Injectable()
 export class ReservationValidator {
   constructor(private prisma: PrismaService) {}
@@ -20,7 +20,7 @@ export class ReservationValidator {
     this.validateOperatingHours(reservedAt);
     // this.validateWeekendRules(reservedAt);
     await Promise.all([
-      this.validateTimeConflicts(userId, reservedAt),
+      // this.validateTimeConflicts(userId, reservedAt),
       this.validateVehicleConflicts(vehicle, reservedAt),
       this.validateUserReservationLimits(userId),
     ]);
@@ -28,12 +28,7 @@ export class ReservationValidator {
   // todo ver tema de las fechas
   private validateDate(reservedAt: Date) {
     const now = new Date();
-    const nowUTC = new Date(
-      Date.now() + new Date().getTimezoneOffset() * 60000,
-    );
-    console.log(now, nowUTC);
-    console.log(reservedAt.getTime(), now.getTime());
-    if (reservedAt.getTime() <= now.getTime()) {
+    if (reservedAt <= now) {
       throw new BadRequestException(
         'La fecha y hora de reserva no pueden ser anteriores a la fecha actual',
       );

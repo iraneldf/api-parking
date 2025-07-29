@@ -11,7 +11,8 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginUserDto } from './dto/login.dto';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
+import { Role } from 'src/common/enums/role.enum';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -35,8 +36,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Registrar um nuevo usuário' })
   @ApiResponse({ status: 200, description: 'Registro exitoso.' })
   @ApiResponse({ status: 401, description: 'Credenciales inválidas.' })
-  async register(@Body() body: CreateUserDto) {
-    const user = await this.usersService.create(body);
+  async register(@Body() body: RegisterUserDto) {
+    const user = await this.usersService.create({
+      ...body,
+      role: Role.CLIENTE,
+    });
     return await this.authService.login({ ...user, password: body.password });
   }
 }

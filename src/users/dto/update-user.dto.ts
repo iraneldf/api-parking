@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEmail, IsOptional, Length, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  Length,
+  IsEnum,
+  Matches,
+} from 'class-validator';
 import { Role } from 'src/common/enums/role.enum';
 
 export class UpdateUserDto {
@@ -33,6 +40,18 @@ export class UpdateUserDto {
   @IsString({ message: 'El nombre debe ser una cadena de texto' })
   @Length(2, 100, { message: 'El nombre debe tener entre 2 y 100 caracteres' })
   name?: string;
+
+  @ApiProperty({
+    example: '53875634',
+    description: 'Número telefónico del usuario',
+    required: true,
+  })
+  @IsString()
+  @Matches(/^\d{7,15}$/, {
+    message:
+      'El número debe contener solo dígitos y tener entre 7 y 15 caracteres',
+  })
+  number: string;
 
   @ApiProperty({
     description: 'Rol del usuario',

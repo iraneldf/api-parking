@@ -68,9 +68,12 @@ npm run test:e2e
 ```plaintext
 src/
 ├── auth/             # Módulo de autenticación y usuarios
-├── parking/          # Lógica del sistema de parqueo
-├── logs/             # Módulo de registro de logs
+├── common/           # Elementos comunes entre módulos
 ├── config/           # Configuración de entorno y bases de datos
+├── logs/             # Módulo de registro de logs
+├── parking/          # Lógica del sistema de parqueo
+├── spot/             # Módulo para gestión de plazas de parqueo
+├── user/             # Módulo para gestión de plazas de usuarios
 ├── main.ts           # Punto de entrada de la app
 └── app.module.ts     # Módulo raíz
 ```

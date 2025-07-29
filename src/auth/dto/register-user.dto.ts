@@ -1,17 +1,7 @@
-import {
-  IsEmail,
-  IsString,
-  MinLength,
-  IsOptional,
-  IsEnum,
-  Matches,
-  Length,
-} from 'class-validator';
+import { IsEmail, IsString, Length, Matches, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from 'src/common/enums/role.enum';
-import { CreateUserInput } from 'src/users/interfaces/user.interface';
 
-export class CreateUserDto implements CreateUserInput {
+export class RegisterUserDto {
   @ApiProperty({
     example: 'usuario@ejemplo.com',
     description: 'Correo electrónico del usuario',
@@ -47,17 +37,4 @@ export class CreateUserDto implements CreateUserInput {
       'El número debe contener solo dígitos y tener entre 7 y 15 caracteres',
   })
   number: string;
-
-  @ApiProperty({
-    description: 'Rol del usuario',
-    enum: Role,
-    enumName: 'Role',
-    example: Role.CLIENTE,
-    required: true,
-  })
-  @IsOptional()
-  @IsEnum(Role, {
-    message: 'El rol debe ser uno válido: admin, empleado o cliente',
-  })
-  role: Role = Role.CLIENTE;
 }

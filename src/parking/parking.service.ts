@@ -7,6 +7,7 @@ import { PrismaService } from '../config/prisma.service';
 import { LogsService } from '../logs/logs.service';
 import { IReserveSpot } from './interfaces/reverve-spot.interface';
 import { ReservationValidator } from './validators/reservation.validator';
+import { OccupiedSpotDetail } from 'src/parking/interfaces/ocuped-spot.interface';
 
 @Injectable()
 export class ParkingService {
@@ -105,23 +106,66 @@ export class ParkingService {
     return { message: 'Reserva cancelada exitosamente' };
   }
 
+  // todo definir bien este metodo buscar la mejor logica
   async getOccupancy() {
     const now = new Date();
-    return this.prisma.parkingSpot.findMany({
+
+    const spots = await this.prisma.parkingSpot.findMany({
       include: {
         reservations: {
           where: {
             reservedAt: {
               lte: now,
             },
-            AND: {
-              reservedAt: {
-                gte: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+            AND: [
+              {
+                reservedAt: {
+                  gte: new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000),
+                },
               },
-            },
+              {
+                duration: {
+                  gt: 0,
+                },
+              },
+            ],
           },
+          orderBy: { reservedAt: 'desc' },
         },
       },
     });
+
+    const totalSpots = spots.length;
+    let occupiedSpots = 0;
+    const occupiedDetails: OccupiedSpotDetail[] = [];
+
+    for (const spot of spots) {
+      const currentReservation = spot.reservations.find((res) => {
+        const start = res.reservedAt.getTime();
+        const end = start + res.duration * 60000;
+        return start <= now.getTime() && now.getTime() < end;
+      });
+
+      if (currentReservation) {
+        occupiedSpots++;
+        occupiedDetails.push({
+          spotId: spot.id,
+          vehicle: currentReservation.vehicle,
+          reservedAt: currentReservation.reservedAt,
+          duration: currentReservation.duration,
+          endsAt: new Date(
+            currentReservation.reservedAt.getTime() +
+              currentReservation.duration * 60000,
+          ),
+        });
+      }
+    }
+
+    return {
+      totalSpots,
+      occupiedSpots,
+      availableSpots: totalSpots - occupiedSpots,
+      details: occupiedDetails,
+    };
   }
 }

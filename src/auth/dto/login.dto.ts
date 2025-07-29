@@ -5,7 +5,7 @@ export class LoginUserDto {
   @IsEmail({}, { message: 'El correo electrónico no es válido.' })
   @IsNotEmpty({ message: 'El correo electrónico no puede estar vacío.' })
   @ApiProperty({
-    example: 'usuario@ejemplo.com',
+    example: 'admin@parking.com',
     description: 'Correo electrónico del usuario',
   })
   email: string;
@@ -13,7 +13,7 @@ export class LoginUserDto {
   @IsString({ message: 'La contraseña debe ser una cadena de texto.' })
   @IsNotEmpty({ message: 'La contraseña no puede estar vacía.' })
   @ApiProperty({
-    example: 'MiContraseña123',
+    example: 'admin123',
     description: 'Contraseña del usuario',
   })
   password: string;
