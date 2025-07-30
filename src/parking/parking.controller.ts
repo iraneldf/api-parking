@@ -38,7 +38,6 @@ export class ParkingController {
     description: 'Permite a un cliente reservar una plaza de parking',
   })
   @ApiResponse({ status: 201, description: 'Reserva exitosa' })
-  // todo ver tema de las fechas q vienen con 4 horas de atraso
   async reserve(@Body() body: ReserveSpotDto, @GetUser() user: UserContext) {
     return this.parkingService.reserveSpot(user.id, body);
   }
@@ -72,5 +71,36 @@ export class ParkingController {
   @ApiResponse({ status: 200, description: 'Ocupación actual devuelta' })
   async getOccupancy() {
     return this.parkingService.getOccupancy();
+  }
+  @Post(':id/check-in')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Registrar entrada del vehículo' })
+  @ApiParam({ name: 'id', type: Number, description: 'ID de la reserva' })
+  @ApiResponse({
+    status: 200,
+    description: 'Entrada del vehículo registrada exitosamente',
+  })
+  @ApiResponse({ status: 404, description: 'Reserva no encontrada' })
+  registerEntry(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: UserContext,
+  ) {
+    return this.parkingService.registerEntry(id, user.id);
+  }
+
+  @Post(':id/check-out')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Registrar salida del vehículo' })
+  @ApiParam({ name: 'id', type: Number, description: 'ID de la reserva' })
+  @ApiResponse({
+    status: 200,
+    description: 'Salida del vehículo registrada exitosamente',
+  })
+  @ApiResponse({ status: 404, description: 'Reserva no encontrada' })
+  registerExit(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: UserContext,
+  ) {
+    return this.parkingService.registerExit(id, user.id);
   }
 }

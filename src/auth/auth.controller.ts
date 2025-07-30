@@ -14,7 +14,7 @@ import { LoginUserDto } from './dto/login.dto';
 import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
 import { Role } from 'src/common/enums/role.enum';
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(

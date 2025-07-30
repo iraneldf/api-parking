@@ -9,6 +9,7 @@ import {
   OccupationResponse,
   ReservationResponse,
 } from './types/parking.responses';
+import { Role } from 'src/common/enums/role.enum';
 
 describe('ParkingController (e2e)', () => {
   let app: INestApplication;
@@ -48,6 +49,16 @@ describe('ParkingController (e2e)', () => {
     await prisma.reservation.deleteMany({
       where: { vehicle: 'ABC123' },
     });
+
+    await prisma.user.update({
+      where: { id: 2 },
+      data: {
+        name: 'Empleado Test',
+        role: Role.EMPLEADO,
+        email: 'empleado@example.com',
+        number: '56121213',
+      },
+    });
     await app.close();
   });
 
@@ -81,9 +92,14 @@ describe('ParkingController (e2e)', () => {
     console.log('Ocupación response:', res.status, res.body);
 
     expect(res.status).toBe(200);
-    const body = res.body as OccupationResponse[];
 
-    expect(Array.isArray(body)).toBe(true);
+    const body = res.body as OccupationResponse;
+
+    expect(typeof body).toBe('object');
+    expect(body).toHaveProperty('totalSpots');
+    expect(body).toHaveProperty('occupiedSpots');
+    expect(body).toHaveProperty('availableSpots');
+    expect(Array.isArray(body.details)).toBe(true);
   });
 
   it('Cancela una reserva (DELETE /parking/cancelar/:id)', async () => {
@@ -99,5 +115,20 @@ describe('ParkingController (e2e)', () => {
     expect(body.message).toBe('Reserva cancelada exitosamente');
   });
 
-  //   todo agregar prueba de modificar usuario
+  it('Editar un usuario (PUT /usuarios/:id)', async () => {
+    const res = await request(app.getHttpServer())
+      .put(`/usuarios/2`)
+      .set('Authorization', `Bearer ${jwtToken}`)
+      .send({
+        name: 'name modificado',
+        email: 'empleadoModificado@example.com',
+        password: 'Abc123456',
+        number: '53873434',
+        role: Role.ADMIN,
+      });
+
+    console.log('Editar usuario response:', res.status, res.body);
+
+    expect(res.status).toBe(200);
+  });
 });

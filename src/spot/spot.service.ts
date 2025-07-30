@@ -6,6 +6,8 @@ import {
 import { PrismaService } from '../config/prisma.service';
 import { CreateSpotDto } from './dto/create-spot.dto';
 import { UpdateSpotDto } from './dto/update-spot.dto';
+import { ParkingSpot } from '@prisma/client';
+import { ReplaceParkingSpotDto } from 'src/spot/dto/replace-spot.dto';
 
 @Injectable()
 export class SpotService {
@@ -46,6 +48,23 @@ export class SpotService {
       }
     }
     return this.prisma.parkingSpot.update({ where: { id }, data });
+  }
+
+  async replace(id: number, dto: ReplaceParkingSpotDto): Promise<ParkingSpot> {
+    const existing = await this.prisma.parkingSpot.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Plaza no encontrada');
+    }
+
+    return this.prisma.parkingSpot.update({
+      where: { id },
+      data: {
+        number: dto.number ?? existing.number,
+      },
+    });
   }
 
   async remove(id: number) {

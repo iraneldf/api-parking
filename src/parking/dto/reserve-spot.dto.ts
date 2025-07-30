@@ -23,9 +23,9 @@ export class ReserveSpotDto implements IReserveSpot {
   @ApiProperty({
     description: 'Duración de la reserva en minutos',
     example: 60,
-    minimum: 1,
+    minimum: 10,
   })
   @IsNumber()
-  @Min(1)
+  @Min(10, { message: 'La duración mínima permitida es de 10 minutos' })
   duration: number;
 }

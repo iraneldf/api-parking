@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -22,6 +23,7 @@ export class ParkingService {
       userId,
       data.vehicle,
       data.reservedAt,
+      data.duration,
     );
 
     const endDate = new Date(data.reservedAt.getTime() + data.duration * 60000);
@@ -106,7 +108,6 @@ export class ParkingService {
     return { message: 'Reserva cancelada exitosamente' };
   }
 
-  // todo definir bien este metodo buscar la mejor logica
   async getOccupancy() {
     const now = new Date();
 
@@ -115,57 +116,122 @@ export class ParkingService {
         reservations: {
           where: {
             reservedAt: {
-              lte: now,
+              gte: now,
             },
-            AND: [
-              {
-                reservedAt: {
-                  gte: new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000),
-                },
-              },
-              {
-                duration: {
-                  gt: 0,
-                },
-              },
-            ],
+            duration: {
+              gt: 0,
+            },
           },
-          orderBy: { reservedAt: 'desc' },
+          orderBy: { reservedAt: 'asc' },
         },
       },
     });
 
     const totalSpots = spots.length;
-    let occupiedSpots = 0;
     const occupiedDetails: OccupiedSpotDetail[] = [];
 
+    const occupiedSpotIds = new Set<number>();
+
     for (const spot of spots) {
-      const currentReservation = spot.reservations.find((res) => {
+      for (const res of spot.reservations) {
         const start = res.reservedAt.getTime();
         const end = start + res.duration * 60000;
-        return start <= now.getTime() && now.getTime() < end;
-      });
 
-      if (currentReservation) {
-        occupiedSpots++;
         occupiedDetails.push({
           spotId: spot.id,
-          vehicle: currentReservation.vehicle,
-          reservedAt: currentReservation.reservedAt,
-          duration: currentReservation.duration,
-          endsAt: new Date(
-            currentReservation.reservedAt.getTime() +
-              currentReservation.duration * 60000,
-          ),
+          spotNumber: spot.number,
+          vehicle: res.vehicle,
+          reservedAt: res.reservedAt,
+          duration: res.duration,
+          endsAt: new Date(end),
         });
+
+        occupiedSpotIds.add(spot.id);
       }
     }
+
+    const occupiedSpots = occupiedSpotIds.size;
+    const availableSpots = totalSpots - occupiedSpots;
 
     return {
       totalSpots,
       occupiedSpots,
-      availableSpots: totalSpots - occupiedSpots,
+      availableSpots,
       details: occupiedDetails,
+    };
+  }
+
+  async registerEntry(reservationId: number, userId: number) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id: reservationId },
+      include: { spot: true },
+    });
+
+    if (!reservation) throw new NotFoundException('Reserva no encontrada');
+    if (reservation.actualArrival)
+      throw new BadRequestException('Ya se registró la entrada');
+
+    await this.prisma.reservation.update({
+      where: { id: reservationId },
+      data: { actualArrival: new Date() },
+    });
+
+    const employee = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    await this.logsService.createLog({
+      type: 'entrada',
+      message: `Vehículo ${reservation.vehicle} ingresó al parking`,
+      userId,
+      data: {
+        reservationId: reservation.id,
+        reservedAt: reservation.reservedAt,
+        by: employee?.name,
+        by_userId: userId,
+      },
+    });
+
+    return { message: 'Entrada registrada' };
+  }
+
+  async registerExit(id: number, userId: number) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+    });
+
+    if (!reservation) {
+      throw new NotFoundException('Reserva no encontrada');
+    }
+
+    if (reservation.actualDeparture) {
+      throw new BadRequestException(
+        'La salida ya fue registrada para esta reserva',
+      );
+    }
+
+    const now = new Date();
+    await this.prisma.reservation.update({
+      where: { id },
+      data: { actualDeparture: now },
+    });
+    const employee = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    await this.logsService.createLog({
+      type: 'salida',
+      message: `Salida registrada para el vehículo ${reservation.vehicle}`,
+      userId: reservation.userId,
+      data: {
+        reservationId: reservation.id,
+        actualDeparture: now,
+        by: employee?.name,
+        by_userId: userId,
+      },
+    });
+
+    return {
+      message: 'Salida registrada correctamente',
+      actualDeparture: now,
     };
   }
 }

@@ -1,10 +1,4 @@
-import { IsOptional, IsString, Matches } from 'class-validator';
+import { PartialType } from '@nestjs/swagger';
+import { CreateSpotDto } from 'src/spot/dto/create-spot.dto';
 
-export class UpdateSpotDto {
-  @IsOptional()
-  @IsString()
-  @Matches(/^A\d{2}$/, {
-    message: 'El número de plaza debe seguir el formato A01, A02, etc.',
-  })
-  number?: string;
-}
+export class UpdateSpotDto extends PartialType(CreateSpotDto) {}

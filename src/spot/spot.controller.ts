@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { SpotService } from './spot.service';
@@ -16,15 +17,17 @@ import { Roles } from '../common/decorators/roles.decorator';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { Role } from '../common/enums/role.enum';
 import { CreateSpotDto } from './dto/create-spot.dto';
 import { UpdateSpotDto } from './dto/update-spot.dto';
+import { ReplaceParkingSpotDto } from 'src/spot/dto/replace-spot.dto';
 
 @ApiBearerAuth()
-@ApiTags('Spot')
+@ApiTags('Plazas')
 @Controller('spot')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
@@ -63,6 +66,19 @@ export class SpotController {
     @Body() body: UpdateSpotDto,
   ) {
     return this.spotService.update(id, body);
+  }
+
+  @Put(':id')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Reemplazar una plaza de parking' })
+  @ApiParam({ name: 'id', description: 'ID de la plaza de parking' })
+  @ApiResponse({ status: 200, description: 'Plaza reemplazada correctamente' })
+  @ApiResponse({ status: 404, description: 'Plaza no encontrada' })
+  replaceSpot(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ReplaceParkingSpotDto,
+  ) {
+    return this.spotService.replace(id, dto);
   }
 
   @Delete(':id')

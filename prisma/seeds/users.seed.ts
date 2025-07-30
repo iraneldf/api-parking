@@ -28,7 +28,7 @@ export async function seedUsers() {
       data: {
         email: 'empleado@example.com',
         password: hashedEmployeePassword,
-        name: 'Cliente Test',
+        name: 'Empleado Test',
         number: '56121213',
         role: Role.EMPLEADO,
       },
