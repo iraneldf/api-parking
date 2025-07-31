@@ -73,6 +73,7 @@ src/
 ├── logs/             # Módulo de registro de logs
 ├── parking/          # Lógica del sistema de parqueo
 ├── spot/             # Módulo para gestión de plazas de parqueo
+├── reservation/             # Módulo para gestión de reservas
 ├── user/             # Módulo para gestión de plazas de usuarios
 ├── main.ts           # Punto de entrada de la app
 └── app.module.ts     # Módulo raíz

@@ -68,6 +68,13 @@ export class UsersService {
     if (existingUser) {
       throw new ConflictException('El email ya está en uso');
     }
+    const existingNumber = await this.prisma.user.findUnique({
+      where: { number: createUserDto.number },
+    });
+
+    if (existingNumber) {
+      throw new ConflictException('El número de teléfono ya está en uso');
+    }
 
     const data = {
       ...createUserDto,

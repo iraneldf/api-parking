@@ -171,6 +171,7 @@ export class ParkingService {
     if (reservation.actualArrival)
       throw new BadRequestException('Ya se registró la entrada');
 
+    const now = new Date();
     await this.prisma.reservation.update({
       where: { id: reservationId },
       data: { actualArrival: new Date() },
@@ -191,7 +192,7 @@ export class ParkingService {
       },
     });
 
-    return { message: 'Entrada registrada' };
+    return { message: 'Entrada registrada', actualArrival: now };
   }
 
   async registerExit(id: number, userId: number) {
